@@ -1,352 +1,295 @@
-# Claude Code Configuration - SPARC Development Environment
+# CLAUDE.md
 
-## 🚨 CRITICAL: CONCURRENT EXECUTION & FILE MANAGEMENT
-
-**ABSOLUTE RULES**:
-1. ALL operations MUST be concurrent/parallel in a single message
-2. **NEVER save working files, text/mds and tests to the root folder**
-3. ALWAYS organize files in appropriate subdirectories
-4. **USE CLAUDE CODE'S TASK TOOL** for spawning agents concurrently, not just MCP
-
-### ⚡ GOLDEN RULE: "1 MESSAGE = ALL RELATED OPERATIONS"
-
-**MANDATORY PATTERNS:**
-- **TodoWrite**: ALWAYS batch ALL todos in ONE call (5-10+ todos minimum)
-- **Task tool (Claude Code)**: ALWAYS spawn ALL agents in ONE message with full instructions
-- **File operations**: ALWAYS batch ALL reads/writes/edits in ONE message
-- **Bash commands**: ALWAYS batch ALL terminal operations in ONE message
-- **Memory operations**: ALWAYS batch ALL memory store/retrieve in ONE message
-
-### 🎯 CRITICAL: Claude Code Task Tool for Agent Execution
-
-**Claude Code's Task tool is the PRIMARY way to spawn agents:**
-```javascript
-// ✅ CORRECT: Use Claude Code's Task tool for parallel agent execution
-[Single Message]:
-  Task("Research agent", "Analyze requirements and patterns...", "researcher")
-  Task("Coder agent", "Implement core features...", "coder")
-  Task("Tester agent", "Create comprehensive tests...", "tester")
-  Task("Reviewer agent", "Review code quality...", "reviewer")
-  Task("Architect agent", "Design system architecture...", "system-architect")
-```
-
-**MCP tools are ONLY for coordination setup:**
-- `mcp__claude-flow__swarm_init` - Initialize coordination topology
-- `mcp__claude-flow__agent_spawn` - Define agent types for coordination
-- `mcp__claude-flow__task_orchestrate` - Orchestrate high-level workflows
-
-### 📁 File Organization Rules
-
-**NEVER save to root folder. Use these directories:**
-- `/src` - Source code files
-- `/tests` - Test files
-- `/docs` - Documentation and markdown files
-- `/config` - Configuration files
-- `/scripts` - Utility scripts
-- `/examples` - Example code
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-This project uses SPARC (Specification, Pseudocode, Architecture, Refinement, Completion) methodology with Claude-Flow orchestration for systematic Test-Driven Development.
+**Klip AI PRO** is a multi-service video clipping SaaS platform that transforms long-form YouTube videos into viral short clips using AI. The system consists of four main applications:
 
-## SPARC Commands
+- **klipklap** - Next.js 16 landing page (public marketing site)
+- **klipklap-dashboard** - Next.js 16 user dashboard for managing projects
+- **klipklap-services** - NestJS backend API with Supabase auth
+- **klipklap-worker** - Express.js microservice for yt-dlp video downloads
 
-### Core Commands
-- `npx claude-flow sparc modes` - List available modes
-- `npx claude-flow sparc run <mode> "<task>"` - Execute specific mode
-- `npx claude-flow sparc tdd "<feature>"` - Run complete TDD workflow
-- `npx claude-flow sparc info <mode>` - Get mode details
+## Architecture Overview
 
-### Batchtools Commands
-- `npx claude-flow sparc batch <modes> "<task>"` - Parallel execution
-- `npx claude-flow sparc pipeline "<task>"` - Full pipeline processing
-- `npx claude-flow sparc concurrent <mode> "<tasks-file>"` - Multi-task processing
+```
+┌─────────────────────┐     ┌──────────────────────────┐
+│   klipklap          │     │   klipklap-dashboard     │
+│   (Landing Page)    │     │   (User Dashboard)       │
+│   Port: 3000        │     │   Port: 3001             │
+└──────────┬──────────┘     └─────────────┬────────────┘
+           │                              │
+           └──────────┬───────────────────┘
+                      │
+                      ▼
+        ┌─────────────────────────┐
+        │   klipklap-services      │
+        │   (NestJS API)           │
+        │   Port: 4000             │
+        └──────────┬───────────────┘
+                   │
+        ┌──────────┴───────────┐
+        ▼                      ▼
+┌───────────────┐     ┌────────────────┐
+│ Supabase      │     │ yt-dlp-worker  │
+│ (Auth + DB)   │     │ Port: 3002     │
+└───────────────┘     └────────────────┘
+```
 
-### Build Commands
-- `npm run build` - Build project
-- `npm run test` - Run tests
-- `npm run lint` - Linting
-- `npm run typecheck` - Type checking
+### Data Flow
+1. User submits YouTube URL via dashboard
+2. Dashboard calls klipklap-services API
+3. Services calls yt-dlp-worker to download video
+4. Services uses OpenAI for transcription/analysis
+5. FFmpeg processes clips via Redis Bull queue
+6. Final clips uploaded to Cloudflare R2 (S3-compatible)
+7. Dashboard polls for job status and displays results
 
-## SPARC Workflow Phases
+## Development Commands
 
-1. **Specification** - Requirements analysis (`sparc run spec-pseudocode`)
-2. **Pseudocode** - Algorithm design (`sparc run spec-pseudocode`)
-3. **Architecture** - System design (`sparc run architect`)
-4. **Refinement** - TDD implementation (`sparc tdd`)
-5. **Completion** - Integration (`sparc run integration`)
-
-## Code Style & Best Practices
-
-- **Modular Design**: Files under 500 lines
-- **Environment Safety**: Never hardcode secrets
-- **Test-First**: Write tests before implementation
-- **Clean Architecture**: Separate concerns
-- **Documentation**: Keep updated
-
-## 🚀 Available Agents (54 Total)
-
-### Core Development
-`coder`, `reviewer`, `tester`, `planner`, `researcher`
-
-### Swarm Coordination
-`hierarchical-coordinator`, `mesh-coordinator`, `adaptive-coordinator`, `collective-intelligence-coordinator`, `swarm-memory-manager`
-
-### Consensus & Distributed
-`byzantine-coordinator`, `raft-manager`, `gossip-coordinator`, `consensus-builder`, `crdt-synchronizer`, `quorum-manager`, `security-manager`
-
-### Performance & Optimization
-`perf-analyzer`, `performance-benchmarker`, `task-orchestrator`, `memory-coordinator`, `smart-agent`
-
-### GitHub & Repository
-`github-modes`, `pr-manager`, `code-review-swarm`, `issue-tracker`, `release-manager`, `workflow-automation`, `project-board-sync`, `repo-architect`, `multi-repo-swarm`
-
-### SPARC Methodology
-`sparc-coord`, `sparc-coder`, `specification`, `pseudocode`, `architecture`, `refinement`
-
-### Specialized Development
-`backend-dev`, `mobile-dev`, `ml-developer`, `cicd-engineer`, `api-docs`, `system-architect`, `code-analyzer`, `base-template-generator`
-
-### Testing & Validation
-`tdd-london-swarm`, `production-validator`
-
-### Migration & Planning
-`migration-planner`, `swarm-init`
-
-## 🎯 Claude Code vs MCP Tools
-
-### Claude Code Handles ALL EXECUTION:
-- **Task tool**: Spawn and run agents concurrently for actual work
-- File operations (Read, Write, Edit, MultiEdit, Glob, Grep)
-- Code generation and programming
-- Bash commands and system operations
-- Implementation work
-- Project navigation and analysis
-- TodoWrite and task management
-- Git operations
-- Package management
-- Testing and debugging
-
-### MCP Tools ONLY COORDINATE:
-- Swarm initialization (topology setup)
-- Agent type definitions (coordination patterns)
-- Task orchestration (high-level planning)
-- Memory management
-- Neural features
-- Performance tracking
-- GitHub integration
-
-**KEY**: MCP coordinates the strategy, Claude Code's Task tool executes with real agents.
-
-## 🚀 Quick Setup
-
+### Root Project
 ```bash
-# Add MCP servers (Claude Flow required, others optional)
-claude mcp add claude-flow npx claude-flow@alpha mcp start
-claude mcp add ruv-swarm npx ruv-swarm mcp start  # Optional: Enhanced coordination
-claude mcp add flow-nexus npx flow-nexus@latest mcp start  # Optional: Cloud features
+# Install all dependencies (run from each subdirectory)
+cd klipklap && npm install
+cd klipklap-dashboard && npm install
+cd klipklap-services && npm install
+cd klipklap-worker && npm install
 ```
 
-## MCP Tool Categories
-
-### Coordination
-`swarm_init`, `agent_spawn`, `task_orchestrate`
-
-### Monitoring
-`swarm_status`, `agent_list`, `agent_metrics`, `task_status`, `task_results`
-
-### Memory & Neural
-`memory_usage`, `neural_status`, `neural_train`, `neural_patterns`
-
-### GitHub Integration
-`github_swarm`, `repo_analyze`, `pr_enhance`, `issue_triage`, `code_review`
-
-### System
-`benchmark_run`, `features_detect`, `swarm_monitor`
-
-### Flow-Nexus MCP Tools (Optional Advanced Features)
-Flow-Nexus extends MCP capabilities with 70+ cloud-based orchestration tools:
-
-**Key MCP Tool Categories:**
-- **Swarm & Agents**: `swarm_init`, `swarm_scale`, `agent_spawn`, `task_orchestrate`
-- **Sandboxes**: `sandbox_create`, `sandbox_execute`, `sandbox_upload` (cloud execution)
-- **Templates**: `template_list`, `template_deploy` (pre-built project templates)
-- **Neural AI**: `neural_train`, `neural_patterns`, `seraphina_chat` (AI assistant)
-- **GitHub**: `github_repo_analyze`, `github_pr_manage` (repository management)
-- **Real-time**: `execution_stream_subscribe`, `realtime_subscribe` (live monitoring)
-- **Storage**: `storage_upload`, `storage_list` (cloud file management)
-
-**Authentication Required:**
-- Register: `mcp__flow-nexus__user_register` or `npx flow-nexus@latest register`
-- Login: `mcp__flow-nexus__user_login` or `npx flow-nexus@latest login`
-- Access 70+ specialized MCP tools for advanced orchestration
-
-## 🚀 Agent Execution Flow with Claude Code
-
-### The Correct Pattern:
-
-1. **Optional**: Use MCP tools to set up coordination topology
-2. **REQUIRED**: Use Claude Code's Task tool to spawn agents that do actual work
-3. **REQUIRED**: Each agent runs hooks for coordination
-4. **REQUIRED**: Batch all operations in single messages
-
-### Example Full-Stack Development:
-
-```javascript
-// Single message with all agent spawning via Claude Code's Task tool
-[Parallel Agent Execution]:
-  Task("Backend Developer", "Build REST API with Express. Use hooks for coordination.", "backend-dev")
-  Task("Frontend Developer", "Create React UI. Coordinate with backend via memory.", "coder")
-  Task("Database Architect", "Design PostgreSQL schema. Store schema in memory.", "code-analyzer")
-  Task("Test Engineer", "Write Jest tests. Check memory for API contracts.", "tester")
-  Task("DevOps Engineer", "Setup Docker and CI/CD. Document in memory.", "cicd-engineer")
-  Task("Security Auditor", "Review authentication. Report findings via hooks.", "reviewer")
-  
-  // All todos batched together
-  TodoWrite { todos: [...8-10 todos...] }
-  
-  // All file operations together
-  Write "backend/server.js"
-  Write "frontend/App.jsx"
-  Write "database/schema.sql"
-```
-
-## 📋 Agent Coordination Protocol
-
-### Every Agent Spawned via Task Tool MUST:
-
-**1️⃣ BEFORE Work:**
+### klipklap (Landing Page)
 ```bash
-npx claude-flow@alpha hooks pre-task --description "[task]"
-npx claude-flow@alpha hooks session-restore --session-id "swarm-[id]"
+cd klipklap
+npm run dev          # Start dev server on :3000
+npm run build        # Production build
+npm run start        # Start production server
+npm run lint         # ESLint
 ```
 
-**2️⃣ DURING Work:**
+### klipklap-dashboard (User Dashboard)
 ```bash
-npx claude-flow@alpha hooks post-edit --file "[file]" --memory-key "swarm/[agent]/[step]"
-npx claude-flow@alpha hooks notify --message "[what was done]"
+cd klipklap-dashboard
+npm run dev          # Start dev server on :3001
+npm run build        # Production build
+npm run start        # Start production server
+npm run lint         # ESLint
 ```
 
-**3️⃣ AFTER Work:**
+### klipklap-services (Backend API)
 ```bash
-npx claude-flow@alpha hooks post-task --task-id "[task]"
-npx claude-flow@alpha hooks session-end --export-metrics true
+cd klipklap-services
+npm run start:dev    # Development with hot reload
+npm run build        # Compile TypeScript
+npm run start:prod   # Production mode
+npm run lint         # ESLint with fix
+npm run test         # Unit tests
+npm run test:cov     # Coverage
+npm run test:e2e     # End-to-end tests
+
+# TypeORM migrations
+npm run typeorm -- migration:generate -n migration_name
+npm run typeorm -- migration:run
+npm run typeorm -- migration:revert
 ```
 
-## 🎯 Concurrent Execution Examples
-
-### ✅ CORRECT WORKFLOW: MCP Coordinates, Claude Code Executes
-
-```javascript
-// Step 1: MCP tools set up coordination (optional, for complex tasks)
-[Single Message - Coordination Setup]:
-  mcp__claude-flow__swarm_init { topology: "mesh", maxAgents: 6 }
-  mcp__claude-flow__agent_spawn { type: "researcher" }
-  mcp__claude-flow__agent_spawn { type: "coder" }
-  mcp__claude-flow__agent_spawn { type: "tester" }
-
-// Step 2: Claude Code Task tool spawns ACTUAL agents that do the work
-[Single Message - Parallel Agent Execution]:
-  // Claude Code's Task tool spawns real agents concurrently
-  Task("Research agent", "Analyze API requirements and best practices. Check memory for prior decisions.", "researcher")
-  Task("Coder agent", "Implement REST endpoints with authentication. Coordinate via hooks.", "coder")
-  Task("Database agent", "Design and implement database schema. Store decisions in memory.", "code-analyzer")
-  Task("Tester agent", "Create comprehensive test suite with 90% coverage.", "tester")
-  Task("Reviewer agent", "Review code quality and security. Document findings.", "reviewer")
-  
-  // Batch ALL todos in ONE call
-  TodoWrite { todos: [
-    {id: "1", content: "Research API patterns", status: "in_progress", priority: "high"},
-    {id: "2", content: "Design database schema", status: "in_progress", priority: "high"},
-    {id: "3", content: "Implement authentication", status: "pending", priority: "high"},
-    {id: "4", content: "Build REST endpoints", status: "pending", priority: "high"},
-    {id: "5", content: "Write unit tests", status: "pending", priority: "medium"},
-    {id: "6", content: "Integration tests", status: "pending", priority: "medium"},
-    {id: "7", content: "API documentation", status: "pending", priority: "low"},
-    {id: "8", content: "Performance optimization", status: "pending", priority: "low"}
-  ]}
-  
-  // Parallel file operations
-  Bash "mkdir -p app/{src,tests,docs,config}"
-  Write "app/package.json"
-  Write "app/src/server.js"
-  Write "app/tests/server.test.js"
-  Write "app/docs/API.md"
+### klipklap-worker (yt-dlp Service)
+```bash
+cd klipklap-worker
+npm run dev          # Nodemon dev server on :3002
+npm start            # Production server
 ```
 
-### ❌ WRONG (Multiple Messages):
-```javascript
-Message 1: mcp__claude-flow__swarm_init
-Message 2: Task("agent 1")
-Message 3: TodoWrite { todos: [single todo] }
-Message 4: Write "file.js"
-// This breaks parallel coordination!
+### Docker Deployment
+```bash
+# Services with docker-compose
+cd klipklap-services
+docker-compose up -d
+
+# Worker separately
+cd klipklap-worker
+docker build -t yt-dlp-worker .
+docker run -p 3002:3000 --env-file .env yt-dlp-worker
 ```
 
-## Performance Benefits
+## Technology Stack
 
-- **84.8% SWE-Bench solve rate**
-- **32.3% token reduction**
-- **2.8-4.4x speed improvement**
-- **27+ neural models**
+### Frontend (klipklap & klipklap-dashboard)
+- **Framework**: Next.js 16.0.10 with App Router
+- **Runtime**: React 19.2.x with TypeScript 5
+- **Styling**: Tailwind CSS v4.1.x
+- **UI**: Radix UI primitives (shadcn/ui "new-york" style)
+- **i18n**: next-intl (Indonesian locale as default)
+- **Auth**: Supabase Auth with PKCE flow
+- **Cloudflare**: @opennextjs/cloudflare for deployment
 
-## Hooks Integration
+### Backend (klipklap-services)
+- **Framework**: NestJS 11 with TypeScript
+- **Database**: PostgreSQL via Supabase with TypeORM
+- **Auth**: Supabase JWT validation
+- **Queue**: Redis with Bull for FFmpeg jobs
+- **AI**: OpenAI (GPT-4o for analysis, Whisper for transcription)
+- **Storage**: Cloudflare R2 (S3-compatible)
+- **Payments**: Xendit integration
+- **API Docs**: Swagger at `/api`
 
-### Pre-Operation
-- Auto-assign agents by file type
-- Validate commands for safety
-- Prepare resources automatically
-- Optimize topology by complexity
-- Cache searches
+### Worker (klipklap-worker)
+- **Framework**: Express.js
+- **Video**: yt-dlp with Deno runtime, FFmpeg
+- **Auth**: API key via `X-API-KEY` header
 
-### Post-Operation
-- Auto-format code
-- Train neural patterns
-- Update memory
-- Analyze performance
-- Track token usage
+## Key Architecture Patterns
 
-### Session Management
-- Generate summaries
-- Persist state
-- Track metrics
-- Restore context
-- Export workflows
+### Supabase Authentication Flow
+1. Frontend initiates Supabase Auth (magic link or OAuth)
+2. User receives callback at `/auth/callback`
+3. Frontend stores JWT token
+4. Backend validates JWT using `SUPABASE_SECRET_KEY`
+5. Protected routes use `@UseGuards(SupabaseAuthGuard)`
 
-## Advanced Features (v2.0.0)
+**Important**: Never use `SUPABASE_ANON_KEY` on backend. Use `SUPABASE_SECRET_KEY` for server-side operations and `SUPABASE_SERVICE_ROLE_KEY` to bypass RLS for admin tasks.
 
-- 🚀 Automatic Topology Selection
-- ⚡ Parallel Execution (2.8-4.4x speed)
-- 🧠 Neural Training
-- 📊 Bottleneck Analysis
-- 🤖 Smart Auto-Spawning
-- 🛡️ Self-Healing Workflows
-- 💾 Cross-Session Memory
-- 🔗 GitHub Integration
+### Video Processing Pipeline
+```
+YouTube URL → yt-dlp download → OpenAI Transcribe → AI Analyze → FFmpeg Extract Clips → Upload to R2
+```
 
-## Integration Tips
+Job states: `pending` → `downloading` → `transcribing` → `analyzing` → `processing` → `completed`/`failed`
 
-1. Start with basic swarm init
-2. Scale agents gradually
-3. Use memory for context
-4. Monitor progress regularly
-5. Train patterns from success
-6. Enable hooks automation
-7. Use GitHub tools first
+### Module Structure (klipklap-services)
+```
+src/
+├── auth/              # JWT validation, guards, decorators
+├── plans/             # Subscription plans (CRUD)
+├── admin-users/       # Admin management with role guards
+├── projects/          # Video clip projects
+├── video-processing/  # Core clipping pipeline
+│   └── ffmpeg/        # Bull queue for FFmpeg jobs
+├── youtube/           # YouTube integration & OAuth
+├── payments/          # Xendit webhooks
+├── xendit/            # Payment links
+├── general-config/    # App configuration
+├── stats/             # Analytics endpoints
+├── redis/             # Redis service
+├── database/          # TypeORM config
+└── migrations/        # DB migrations
+```
 
-## Support
+### Database Tables (Supabase/PostgreSQL)
+Key tables managed by TypeORM:
+- `plans` - Subscription plans
+- `admin_users` - Admin accounts
+- `projects` - Video processing projects
+- `clips` - Generated clips per project
+- `youtube_connections` - OAuth tokens
+- `youtube_upload_jobs` - Upload status tracking
+- `general_config` - App settings
 
-- Documentation: https://github.com/ruvnet/claude-flow
-- Issues: https://github.com/ruvnet/claude-flow/issues
-- Flow-Nexus Platform: https://flow-nexus.ruv.io (registration required for cloud features)
+## Environment Configuration
 
----
+### Required Supabase Variables
+```bash
+SUPABASE_URL=https://xxx.supabase.co
+SUPABASE_SECRET_KEY=xxx        # Backend API operations
+SUPABASE_SERVICE_ROLE_KEY=xxx  # Bypass RLS for admin
+SUPABASE_JWT_SECRET=xxx        # JWT verification
+```
 
-Remember: **Claude Flow coordinates, Claude Code creates!**
+### Required AI/Processing Variables
+```bash
+OPENAI_API_KEY=sk-xxx
+AWS_ACCESS_KEY_ID=xxx          # R2 credentials
+AWS_SECRET_ACCESS_KEY=xxx
+AWS_S3_BUCKET=klipklap-videos
+AWS_S3_ENDPOINT=https://xxx.r2.cloudflarestorage.com
+REDIS_URL=redis://localhost:6379
+YTDLP_API_URL=http://localhost:3002
+YTDLP_API_KEY=secret-key
+```
 
-# important-instruction-reminders
-Do what has been asked; nothing more, nothing less.
-NEVER create files unless they're absolutely necessary for achieving your goal.
-ALWAYS prefer editing an existing file to creating a new one.
-NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
-Never save working files, text/mds and tests to the root folder.
+### Required Payment Variables
+```bash
+XENDIT_SECRET_KEY=xxx
+XENDIT_WEBHOOK_TOKEN=xxx
+XENDIT_ENVIRONMENT=development
+```
+
+## TypeScript Configuration Notes
+
+### Frontend (Next.js)
+- Target: ES2017, Module: esnext
+- Path alias: `@/*` maps to root
+- JSX: react-jsx
+- Strict mode enabled
+
+### Backend (NestJS)
+- Target: ES2023, Module: NodeNext
+- Decorators enabled (emitDecoratorMetadata)
+- `noImplicitAny: false` (legacy)
+- Output: `dist/`
+
+## Common Development Tasks
+
+### Adding a New API Endpoint
+1. Create DTO in `src/{module}/dto/`
+2. Add method to controller with `@ApiOperation` decorator
+3. Implement in service
+4. Add to module if new provider
+5. Swagger auto-docs at `/api`
+
+### Adding Database Migration
+```bash
+cd klipklap-services
+npm run typeorm -- migration:generate -n src/migrations/migration_name
+npm run typeorm -- migration:run
+```
+
+### Running Locally
+1. Start Supabase local or use cloud project
+2. Start Redis: `redis-server`
+3. Start worker: `cd klipklap-worker && npm run dev`
+4. Start services: `cd klipklap-services && npm run start:dev`
+5. Start dashboard: `cd klipklap-dashboard && npm run dev`
+6. Start landing: `cd klipklap && npm run dev`
+
+### Testing Video Processing
+```bash
+# Check worker health
+curl http://localhost:3002/health
+
+# Get YouTube info
+curl -X POST http://localhost:3002/info \
+  -H "x-api-key: your-key" \
+  -d '{"url": "https://youtube.com/watch?v=xxx"}'
+
+# Create clip via API
+curl -X POST http://localhost:4000/video-processing/clips \
+  -H "Authorization: Bearer YOUR_JWT" \
+  -d '{"youtubeUrl": "...", "numberOfClips": 3}'
+```
+
+## Deployment Notes
+
+### Cloudflare Pages (Frontend)
+- Uses `@opennextjs/cloudflare` adapter
+- Build command: `npm run build`
+- Output directory handled by adapter
+
+### Docker (Services)
+- Image: `ghcr.io/norld/klipklap-services:latest`
+- Port mapping: `4000:3000`
+- Volume mounts for logs and temp files
+- Health check on `/health`
+
+### Environment-Specific
+- Development: Use `.env` files (gitignored)
+- Production: Use `docker-compose.yml` with `.env.prod`
+
+## Important Gotchas
+
+1. **Auth tokens**: Frontend gets token from Supabase client, passes via `Authorization: Bearer` header
+2. **Worker API key**: All worker endpoints except `/health` require `X-API-KEY` header
+3. **FFmpeg concurrency**: Configured via `FFMPEG_QUEUE_CONCURRENCY` env var (default: 3)
+4. **R2 not S3**: Must set `AWS_S3_ENDPOINT` for Cloudflare R2
+5. **i18n**: klipklap uses Indonesian locale by default (`locale = 'id'`)
+6. **TypeORM entities**: Located in `src/entities/`, run migrations after schema changes
+7. **Job persistence**: Processing jobs cached in Redis with 24-hour TTL
